@@ -1,0 +1,116 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Dado
+{
+    private int numeroCaras;
+    private Random random;
+    private List<int> resultados;
+
+    public Dado(int numeroCaras)
+    {
+        if (numeroCaras < 2)
+            throw new ArgumentException("Un dado debe tener al menos 2 caras.");
+
+        this.numeroCaras = numeroCaras;
+        this.random = new Random();
+        this.resultados = new List<int>();
+    }
+
+    // Lanza una vez el dado
+    public int Lanzar()
+    {
+        int resultado = random.Next(1, numeroCaras + 1);
+        resultados.Add(resultado);
+        return resultado;
+    }
+
+    // Lanza el dado múltiples veces
+    public List<int> LanzarMultiple(int veces)
+    {
+        if (veces <= 0)
+            throw new ArgumentException("El número de lanzamientos debe ser mayor a 0.");
+
+        List<int> lista = new List<int>();
+
+        for (int i = 0; i < veces; i++)
+        {
+            lista.Add(Lanzar());
+        }
+
+        return lista;
+    }
+
+    // Calcula frecuencias de cada cara
+    public Dictionary<int, int> CalcularFrecuencias()
+    {
+        Dictionary<int, int> frecuencias = new Dictionary<int, int>();
+
+        for (int i = 1; i <= numeroCaras; i++)
+        {
+            frecuencias[i] = 0;
+        }
+
+        foreach (int resultado in resultados)
+        {
+            frecuencias[resultado]++;
+        }
+
+        return frecuencias;
+    }
+
+    // Calcula el promedio de los resultados
+    public double CalcularPromedio()
+    {
+        if (resultados.Count == 0)
+            return 0;
+
+        return resultados.Average();
+    }
+
+    // Verifica si el dado es "justo"
+    public bool VerificarSiEsJusto(double tolerancia = 0.05)
+    {
+        var frecuencias = CalcularFrecuencias();
+        int total = resultados.Count;
+
+        if (total == 0)
+            return false;
+
+        double frecuenciaEsperada = (double)total / numeroCaras;
+
+        foreach (var par in frecuencias)
+        {
+            double diferencia = Math.Abs(par.Value - frecuenciaEsperada) / frecuenciaEsperada;
+
+            if (diferencia > tolerancia)
+                return false;
+        }
+
+        return true;
+    }
+}
+
+// Programa de prueba
+class Program
+{
+    static void Main()
+    {
+        Dado dado = new Dado(6);
+
+        dado.LanzarMultiple(1000);
+
+        Console.WriteLine("Frecuencias:");
+        var frecuencias = dado.CalcularFrecuencias();
+        foreach (var f in frecuencias)
+        {
+            Console.WriteLine($"Cara {f.Key}: {f.Value}");
+        }
+
+        Console.WriteLine($"\nPromedio: {dado.CalcularPromedio():F2}");
+
+        bool esJusto = dado.VerificarSiEsJusto();
+        Console.WriteLine($"\n¿El dado es justo? {(esJusto ? "Sí" : "No")}");
+    }
+}
